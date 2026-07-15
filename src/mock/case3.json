@@ -1,28 +1,112 @@
 {
   "caseId": "case3",
-  "title": "제주 여행 코스",
-  "userInput": "제주도 2박 3일 여행 코스 짜줘",
+  "title": "제주 웨이팅 없는 가성비 맛집 코스",
+  "userInput": "제주 여행 중 웨이팅 없고 가성비 좋은 3끼 맛집 코스, 인원 4명",
   "courses": [
     {
       "id": 1,
-      "title": "동쪽 자연 코스",
-      "description": "성산일출봉 → 섭지코지 → 우도 페리",
+      "title": "제주 시내 가성비 3끼 코스",
+      "description": "우진해장국 → 제주몸국거리식당 → 돈사돈 흑돼지",
       "duration": "1일차",
-      "places": ["성산일출봉", "섭지코지", "우도"]
+      "places": [
+        {
+          "name": "우진해장국",
+          "lat": 33.4996,
+          "lng": 126.5312,
+          "hours": "매일 06:00-14:00",
+          "verified": true,
+          "matchedConstraints": ["웨이팅 적음", "가성비 좋음", "4인 좌석 가능"],
+          "reviewSnippet": "아침 일찍 가서 웨이팅 없이 먹었어요 (네이버 리뷰 발췌)"
+        },
+        {
+          "name": "제주몸국거리식당",
+          "lat": 33.4590,
+          "lng": 126.9410,
+          "hours": "매일 09:00-19:00",
+          "verified": true,
+          "matchedConstraints": ["웨이팅 적음", "가성비 좋음"],
+          "reviewSnippet": "평일 낮에는 대기 없이 바로 들어갔어요 (카카오맵 리뷰 발췌)"
+        },
+        {
+          "name": "돈사돈 흑돼지",
+          "lat": 33.4610,
+          "lng": 126.5420,
+          "hours": "매일 11:00-22:00",
+          "verified": false,
+          "matchedConstraints": ["4인 좌석 가능"],
+          "reviewSnippet": "저녁엔 대기가 있을 수도 있다는 후기가 있어요 (블로그 발췌)"
+        }
+      ]
     },
     {
       "id": 2,
-      "title": "서쪽 감성 코스",
-      "description": "애월 카페거리 → 협재 해수욕장 → 한림 공원",
+      "title": "제주 서귀포 가성비 코스",
+      "description": "쌍둥이횟집 → 올레국수 → 이중섭거리 국밥집",
       "duration": "2일차",
-      "places": ["애월 카페거리", "협재 해수욕장", "한림 공원"]
+      "places": [
+        {
+          "name": "쌍둥이횟집",
+          "lat": 33.2470,
+          "lng": 126.5610,
+          "hours": "매일 10:00-21:00",
+          "verified": true,
+          "matchedConstraints": ["가성비 좋음", "4인 좌석 가능"],
+          "reviewSnippet": "4인 세트가 저렴하고 양이 많아요 (네이버 리뷰 발췌)"
+        },
+        {
+          "name": "올레국수",
+          "lat": 33.2530,
+          "lng": 126.5605,
+          "hours": "매일 08:00-20:00",
+          "verified": true,
+          "matchedConstraints": ["웨이팅 적음", "가성비 좋음"],
+          "reviewSnippet": "회전율이 빨라서 줄을 서도 금방 들어가요 (네이버 리뷰 발췌)"
+        },
+        {
+          "name": "이중섭거리 국밥집",
+          "lat": 33.2495,
+          "lng": 126.5615,
+          "hours": "매일 07:00-15:00",
+          "verified": true,
+          "matchedConstraints": ["웨이팅 적음", "가성비 좋음"],
+          "reviewSnippet": "아침 국밥집이라 웨이팅이 거의 없어요 (카카오맵 리뷰 발췌)"
+        }
+      ]
     },
     {
       "id": 3,
-      "title": "중문 힐링 코스",
-      "description": "중문 색동민속마을 → 천지연 폭포 → 올레길 산책",
+      "title": "제주 동쪽 가성비 코스",
+      "description": "성산해녀의집 → 세화조식 → 김녕흑돼지",
       "duration": "3일차",
-      "places": ["색동민속마을", "천지연 폭포", "올레길 7코스"]
+      "places": [
+        {
+          "name": "성산해녀의집",
+          "lat": 33.4587,
+          "lng": 126.9410,
+          "hours": "매일 09:00-19:00",
+          "verified": true,
+          "matchedConstraints": ["가성비 좋음", "4인 좌석 가능"],
+          "reviewSnippet": "해산물 세트가 4인 기준 가성비 좋아요 (네이버 리뷰 발췌)"
+        },
+        {
+          "name": "세화조식",
+          "lat": 33.5270,
+          "lng": 126.8590,
+          "hours": "매일 07:00-13:00",
+          "verified": false,
+          "matchedConstraints": ["웨이팅 적음"],
+          "reviewSnippet": "이른 아침엔 웨이팅이 없다고 해요 (블로그 발췌)"
+        },
+        {
+          "name": "김녕흑돼지",
+          "lat": 33.5560,
+          "lng": 126.7570,
+          "hours": "매일 11:00-22:00",
+          "verified": true,
+          "matchedConstraints": ["가성비 좋음", "4인 좌석 가능"],
+          "reviewSnippet": "4인이서 넉넉하게 먹어도 부담 없는 가격이었어요 (네이버 리뷰 발췌)"
+        }
+      ]
     }
   ]
 }

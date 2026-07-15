@@ -1,28 +1,112 @@
 {
   "caseId": "case1",
-  "title": "홍대 데이트 코스",
-  "userInput": "홍대에서 데이트하기 좋은 곳 추천해줘",
+  "title": "성수동 유모차·반려동물 브런치 코스",
+  "userInput": "성수동에서 유모차 진입 가능하고 반려동물 동반되는 브런치 코스",
   "courses": [
     {
       "id": 1,
-      "title": "감성 카페 산책 코스",
-      "description": "연남동 골목 카페 → 망원 한강공원 산책 → 저녁 와인바",
-      "duration": "약 4시간",
-      "places": ["연남동 카페거리", "망원 한강공원", "홍대 와인바"]
+      "title": "유모차 프렌들리 브런치 코스",
+      "description": "어니언 성수 → 성수연방 → 서울숲 산책",
+      "duration": "약 3시간",
+      "places": [
+        {
+          "name": "어니언 성수",
+          "lat": 37.5445,
+          "lng": 127.0565,
+          "hours": "매일 08:00-22:00",
+          "verified": true,
+          "matchedConstraints": ["유모차 진입 가능", "단차 없는 입구"],
+          "reviewSnippet": "유모차 끌고 들어가기 편했어요 (네이버 리뷰 발췌)"
+        },
+        {
+          "name": "성수연방",
+          "lat": 37.5443,
+          "lng": 127.0558,
+          "hours": "매일 11:00-21:00",
+          "verified": true,
+          "matchedConstraints": ["유모차 진입 가능", "엘리베이터 있음"],
+          "reviewSnippet": "엘리베이터가 있어서 유모차 이동이 편했어요 (카카오맵 리뷰 발췌)"
+        },
+        {
+          "name": "서울숲",
+          "lat": 37.5443,
+          "lng": 127.0374,
+          "hours": "24시간 개방",
+          "verified": true,
+          "matchedConstraints": ["유모차 진입 가능", "반려동물 동반 가능"],
+          "reviewSnippet": "넓은 산책로라 유모차랑 강아지 데리고 다니기 좋아요 (네이버 리뷰 발췌)"
+        }
+      ]
     },
     {
       "id": 2,
-      "title": "맛집 투어 코스",
-      "description": "브런치 카페 → 일본 라멘 → 디저트 카페",
+      "title": "반려동물 동반 브런치 코스",
+      "description": "펫프렌들리 성수 → 도프도넛 성수 → 뚝섬한강공원",
       "duration": "약 3시간",
-      "places": ["홍대 브런치 카페", "합정 라멘집", "상수 디저트 카페"]
+      "places": [
+        {
+          "name": "펫프렌들리 성수",
+          "lat": 37.5439,
+          "lng": 127.0552,
+          "hours": "매일 10:00-20:00",
+          "verified": true,
+          "matchedConstraints": ["반려동물 동반 가능", "반려동물 전용 메뉴 있음"],
+          "reviewSnippet": "강아지 전용 의자까지 있어서 좋았어요 (네이버 리뷰 발췌)"
+        },
+        {
+          "name": "도프도넛 성수",
+          "lat": 37.5441,
+          "lng": 127.0563,
+          "hours": "매일 09:00-21:00",
+          "verified": true,
+          "matchedConstraints": ["유모차 진입 가능", "반려동물 동반 가능"],
+          "reviewSnippet": "테라스 자리에 반려동물 동반 가능해요 (구글 리뷰 발췌)"
+        },
+        {
+          "name": "뚝섬한강공원",
+          "lat": 37.5297,
+          "lng": 127.0637,
+          "hours": "24시간 개방",
+          "verified": true,
+          "matchedConstraints": ["유모차 진입 가능", "반려동물 동반 가능"],
+          "reviewSnippet": "산책로가 잘 되어 있어서 유모차와 반려견 모두 편해요 (네이버 리뷰 발췌)"
+        }
+      ]
     },
     {
       "id": 3,
-      "title": "문화 체험 코스",
-      "description": "전시 관람 → 빈티지 숍 → 재즈바",
-      "duration": "약 5시간",
-      "places": ["DMC 전시관", "연남 빈티지 숍", "홍대 재즈바"]
+      "title": "여유로운 브런치+카페 코스",
+      "description": "카페 어스름 → 대림창고 → 성수동 카페거리 산책",
+      "duration": "약 3.5시간",
+      "places": [
+        {
+          "name": "카페 어스름",
+          "lat": 37.5436,
+          "lng": 127.0547,
+          "hours": "매일 10:00-22:00",
+          "verified": true,
+          "matchedConstraints": ["유모차 진입 가능"],
+          "reviewSnippet": "공간이 넓어서 유모차 자리 잡기 좋아요 (네이버 리뷰 발췌)"
+        },
+        {
+          "name": "대림창고",
+          "lat": 37.5427,
+          "lng": 127.0538,
+          "hours": "매일 11:00-23:00",
+          "verified": false,
+          "matchedConstraints": ["반려동물 동반 가능"],
+          "reviewSnippet": "반려동물 동반 가능하다고 들었는데 확인이 더 필요해요 (블로그 발췌)"
+        },
+        {
+          "name": "성수동 카페거리",
+          "lat": 37.5440,
+          "lng": 127.0560,
+          "hours": "상시 개방",
+          "verified": true,
+          "matchedConstraints": ["유모차 진입 가능", "반려동물 동반 가능"],
+          "reviewSnippet": "거리 자체가 넓어서 유모차, 강아지 모두 다니기 편해요 (네이버 리뷰 발췌)"
+        }
+      ]
     }
   ]
 }

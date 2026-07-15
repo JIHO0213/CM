@@ -16,11 +16,11 @@ export default function CourseCard({ title, description, duration, places, index
       {/* 예상 소요 시간 */}
       <p className="mt-3 text-xs font-medium text-gray-400">⏱ {duration}</p>
 
-      {/* 방문 장소 목록 */}
+      {/* 방문 장소 목록 (place는 이름/좌표/영업시간 등을 담은 객체) */}
       <ul className="mt-3 space-y-1">
         {places.map((place) => (
-          <li key={place} className="text-sm text-gray-700">
-            📍 {place}
+          <li key={place.name} className="text-sm text-gray-700">
+            📍 {place.name}
           </li>
         ))}
       </ul>

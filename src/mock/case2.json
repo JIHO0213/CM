@@ -1,28 +1,112 @@
 {
   "caseId": "case2",
-  "title": "강남 회식 코스",
-  "userInput": "강남에서 팀 회식 장소 추천해줘",
+  "title": "비 오는 날 채식 강남 데이트 코스",
+  "userInput": "비 오는 날 채식 메뉴 있고 동선 안 꼬이는 강남 데이트 코스, 예산 10만원",
   "courses": [
     {
       "id": 1,
-      "title": "고기 파티 코스",
-      "description": "프리미엄 한우 → 노래방 → 포차 거리",
+      "title": "실내 채식 데이트 코스",
+      "description": "플란트 강남 → 교보타워 지하상가 → 카페 노티드 강남",
       "duration": "약 4시간",
-      "places": ["강남 한우집", "역삼 노래방", "신사동 포차"]
+      "places": [
+        {
+          "name": "플란트 강남",
+          "lat": 37.4980,
+          "lng": 127.0276,
+          "hours": "매일 11:30-21:30",
+          "verified": true,
+          "matchedConstraints": ["채식 메뉴 있음", "실내 이동 가능"],
+          "reviewSnippet": "비건 메뉴가 다양해서 좋았어요 (네이버 리뷰 발췌)"
+        },
+        {
+          "name": "교보타워 지하상가",
+          "lat": 37.5006,
+          "lng": 127.0364,
+          "hours": "매일 10:00-22:00",
+          "verified": true,
+          "matchedConstraints": ["실내 이동 가능", "우천시 이동 편리"],
+          "reviewSnippet": "비 와도 지하로 쭉 이어져서 안 젖고 다녔어요 (네이버 리뷰 발췌)"
+        },
+        {
+          "name": "카페 노티드 강남",
+          "lat": 37.4995,
+          "lng": 127.0286,
+          "hours": "매일 10:00-22:00",
+          "verified": true,
+          "matchedConstraints": ["채식 메뉴 있음"],
+          "reviewSnippet": "비건 디저트도 있어서 데이트하기 좋았어요 (카카오맵 리뷰 발췌)"
+        }
+      ]
     },
     {
       "id": 2,
-      "title": "이자카야 코스",
-      "description": "이자카야 → 칵테일 바 → 심야 라면",
-      "duration": "약 3.5시간",
-      "places": ["청담 이자카야", "압구정 칵테일 바", "강남 라면집"]
+      "title": "예산 맞춤 채식 코스",
+      "description": "소식주의 강남점 → 스타필드 코엑스몰 → 몽스뜨베르트",
+      "duration": "약 3시간",
+      "places": [
+        {
+          "name": "소식주의 강남점",
+          "lat": 37.4975,
+          "lng": 127.0281,
+          "hours": "매일 11:00-21:00",
+          "verified": true,
+          "matchedConstraints": ["채식 메뉴 있음", "예산 10만원 이내"],
+          "reviewSnippet": "둘이서 8만원 정도로 든든하게 먹었어요 (네이버 리뷰 발췌)"
+        },
+        {
+          "name": "스타필드 코엑스몰",
+          "lat": 37.5115,
+          "lng": 127.0590,
+          "hours": "매일 10:30-22:00",
+          "verified": true,
+          "matchedConstraints": ["실내 이동 가능", "우천시 이동 편리"],
+          "reviewSnippet": "실내라 비 걱정 없이 다닐 수 있어요 (네이버 리뷰 발췌)"
+        },
+        {
+          "name": "몽스뜨베르트",
+          "lat": 37.5107,
+          "lng": 127.0601,
+          "hours": "매일 10:00-21:00",
+          "verified": false,
+          "matchedConstraints": ["채식 메뉴 있음"],
+          "reviewSnippet": "비건 디저트가 있다고 들었는데 방문 후기가 적어요 (블로그 발췌)"
+        }
+      ]
     },
     {
       "id": 3,
-      "title": "뷔페 & 라운지 코스",
-      "description": "호텔 뷔페 → 루프탑 라운지 → 디저트 카페",
-      "duration": "약 5시간",
-      "places": ["삼성동 호텔 뷔페", "코엑스 루프탑", "선릉 디저트 카페"]
+      "title": "여유로운 실내 데이트 코스",
+      "description": "지구인컴퍼니 카페 → 갤러리아백화점 명품관 → 오스테리아 채식파스타",
+      "duration": "약 3.5시간",
+      "places": [
+        {
+          "name": "지구인컴퍼니 카페",
+          "lat": 37.5163,
+          "lng": 127.0350,
+          "hours": "매일 11:00-20:00",
+          "verified": true,
+          "matchedConstraints": ["채식 메뉴 있음"],
+          "reviewSnippet": "식물성 고기 메뉴가 맛있었어요 (네이버 리뷰 발췌)"
+        },
+        {
+          "name": "갤러리아백화점 명품관",
+          "lat": 37.5274,
+          "lng": 127.0413,
+          "hours": "매일 10:30-20:00",
+          "verified": true,
+          "matchedConstraints": ["실내 이동 가능", "우천시 이동 편리"],
+          "reviewSnippet": "실내에서 데이트 코스 이어가기 좋아요 (네이버 리뷰 발췌)"
+        },
+        {
+          "name": "오스테리아 채식파스타",
+          "lat": 37.5268,
+          "lng": 127.0405,
+          "hours": "매일 11:30-21:30",
+          "verified": true,
+          "matchedConstraints": ["채식 메뉴 있음", "예산 10만원 이내"],
+          "reviewSnippet": "파스타 두 개에 9만원 정도로 예산 안에서 즐겼어요 (네이버 리뷰 발췌)"
+        }
+      ]
     }
   ]
 }
