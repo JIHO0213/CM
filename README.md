@@ -25,15 +25,13 @@ src/
 │   └── case3.json
 ├── components/         # 재사용 가능한 UI 조각
 │   ├── AppHeader.jsx
+│   ├── ChatAiMessage.jsx  # AI 말풍선 (STEP 로딩 → 결과 카드 전환)
 │   ├── CourseCard.jsx
 │   ├── MapPlaceholder.jsx
-│   ├── PresetButton.jsx
 │   └── ReasoningStep.jsx
 ├── screens/            # 화면 단위 컴포넌트
-│   ├── InputScreen.jsx
-│   ├── ReasoningScreen.jsx
-│   └── ResultScreen.jsx
-├── App.jsx             # 라우팅 설정
+│   └── ChatScreen.jsx  # 채팅형 UI 화면 (하나로 통합)
+├── App.jsx             # 앱 진입 컴포넌트 (라우팅 없이 ChatScreen 렌더링)
 ├── main.jsx            # React 앱 진입점
 └── index.css           # Tailwind CSS
 ```
@@ -42,5 +40,4 @@ src/
 
 - React + Vite
 - Tailwind CSS
-- react-router-dom
-- 상태관리: useState / useContext (Redux 미사용)
+- 상태관리: useState (Redux 미사용)
