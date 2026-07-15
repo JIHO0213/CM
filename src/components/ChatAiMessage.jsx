@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import ReasoningStep from './ReasoningStep'
 import CourseCard from './CourseCard'
-import MapPlaceholder from './MapPlaceholder'
+import MapView from './MapView'
 import { getCourseRecommendation } from '../api'
+import { getCourseColor } from '../lib/courseColors'
 
 // 기존 ReasoningScreen에서 쓰던 STEP 1~5 문구 (그대로 재사용)
 const REASONING_STEPS = [
@@ -22,6 +23,7 @@ const REASONING_STEPS = [
 export default function ChatAiMessage({ caseId, initialCourse, onGrow, onComplete }) {
   const [visibleCount, setVisibleCount] = useState(initialCourse ? REASONING_STEPS.length : 0)
   const [course, setCourse] = useState(initialCourse ?? null) // 로딩이 끝나면 여기에 결과 데이터가 들어옴
+  const [activeIndex, setActiveIndex] = useState(null) // 마우스를 올리거나 클릭한 코스 (null이면 전체 표시)
 
   useEffect(() => {
     if (initialCourse) return // 이미 완료된 메시지를 복원하는 경우엔 애니메이션 다시 재생 안 함
@@ -68,19 +70,27 @@ export default function ChatAiMessage({ caseId, initialCourse, onGrow, onComplet
   }
 
   // 결과가 도착하면 지도 + 코스 카드들을 같은 말풍선 안에 표시
+  // 카드에 마우스를 올리거나 클릭하면 activeIndex가 바뀌면서 지도에서 해당 코스만 강조됨
   return (
     <div className="space-y-4">
-      <MapPlaceholder />
-      {course.courses.map((c, index) => (
-        <CourseCard
-          key={c.id}
-          index={index + 1}
-          title={c.title}
-          description={c.description}
-          duration={c.duration}
-          places={c.places}
-        />
-      ))}
+      <MapView courses={course.courses} activeIndex={activeIndex} />
+      <div className="space-y-4">
+        {course.courses.map((c, index) => (
+          <CourseCard
+            key={c.id}
+            index={index + 1}
+            title={c.title}
+            description={c.description}
+            duration={c.duration}
+            places={c.places}
+            color={getCourseColor(index)}
+            isActive={activeIndex === index}
+            onMouseEnter={() => setActiveIndex(index)}
+            onMouseLeave={() => setActiveIndex(null)}
+            onClick={() => setActiveIndex(index)}
+          />
+        ))}
+      </div>
     </div>
   )
 }

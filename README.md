@@ -8,7 +8,11 @@
 # 1. 의존성 설치 (최초 1회)
 npm install
 
-# 2. 개발 서버 실행
+# 2. 카카오맵 API 키 설정 (최초 1회)
+cp .env.example .env
+# .env 파일을 열어서 VITE_KAKAO_MAP_KEY 값을 발급받은 키로 교체
+
+# 3. 개발 서버 실행
 npm run dev
 ```
 
@@ -23,11 +27,14 @@ src/
 │   ├── case1.json
 │   ├── case2.json
 │   └── case3.json
+├── lib/                 # 화면과 무관한 유틸/설정
+│   ├── kakaoMapLoader.js # 카카오맵 SDK 스크립트 로더
+│   └── courseColors.js   # 코스별 색상(A=파랑/B=초록/C=주황)
 ├── components/         # 재사용 가능한 UI 조각
 │   ├── AppHeader.jsx
 │   ├── ChatAiMessage.jsx  # AI 말풍선 (STEP 로딩 → 결과 카드 전환)
 │   ├── CourseCard.jsx
-│   ├── MapPlaceholder.jsx
+│   ├── MapView.jsx        # 카카오맵 실연동 (마커+경로선+강조)
 │   └── ReasoningStep.jsx
 ├── screens/            # 화면 단위 컴포넌트
 │   └── ChatScreen.jsx  # 채팅형 UI 화면 (하나로 통합)
