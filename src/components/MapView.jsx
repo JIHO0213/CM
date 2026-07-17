@@ -13,10 +13,12 @@ export default function MapView({ courses, activeIndex }) {
 
   const [mapReady, setMapReady] = useState(false) // 지도 객체 생성이 끝났는지
   const [error, setError] = useState(null) // 실패했을 때 보여줄 안내 문구
+  const [retryCount, setRetryCount] = useState(0) // "다시 시도" 버튼을 누르면 증가 → 아래 로딩을 재실행시킴
 
-  // 처음 한 번만: SDK를 불러오고 지도 객체를 생성
+  // SDK를 불러오고 지도 객체를 생성 (retryCount가 바뀌면 재시도)
   useEffect(() => {
     let cancelled = false
+    setError(null)
 
     loadKakaoMaps()
       .then((kakao) => {
@@ -30,18 +32,20 @@ export default function MapView({ courses, activeIndex }) {
           mapRef.current = map
           kakaoRef.current = kakao
           setMapReady(true)
-        } catch {
+        } catch (err) {
+          console.error('[MapView] 지도 생성 실패:', err) // 화면엔 안내 문구만, 콘솔엔 실제 원인을 남김
           setError('지도를 불러올 수 없습니다')
         }
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error('[MapView] SDK 로딩 실패:', err) // 화면엔 안내 문구만, 콘솔엔 실제 원인을 남김
         setError('지도를 불러올 수 없습니다')
       })
 
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [retryCount])
 
   // 지도가 준비되었거나, 강조할 코스가 바뀌었을 때: 마커+선을 다시 그림
   useEffect(() => {
@@ -89,7 +93,8 @@ export default function MapView({ courses, activeIndex }) {
       if (!bounds.isEmpty()) {
         map.setBounds(bounds)
       }
-    } catch {
+    } catch (err) {
+      console.error('[MapView] 마커/경로 표시 실패:', err) // 화면엔 안내 문구만, 콘솔엔 실제 원인을 남김
       setError('지도를 표시하는 중 문제가 발생했습니다')
     }
   }, [mapReady, activeIndex, courses])
@@ -100,6 +105,14 @@ export default function MapView({ courses, activeIndex }) {
         <div className="text-center">
           <p className="text-2xl">🗺️</p>
           <p className="mt-2 text-sm text-gray-500">{error}</p>
+          {/* 와이파이 등 일시적인 문제일 수 있어서, 새로고침 없이 바로 재시도할 수 있게 함 */}
+          <button
+            type="button"
+            onClick={() => setRetryCount((count) => count + 1)}
+            className="mt-3 rounded-full border border-gray-300 bg-white px-3 py-1 text-xs font-medium text-gray-600 hover:border-[#FEE500]"
+          >
+            다시 시도
+          </button>
         </div>
       </div>
     )
