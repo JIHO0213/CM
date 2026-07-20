@@ -209,13 +209,19 @@ async def _build_one_course(
 
     places = [anchor] if seed_anchor_as_place else []
     prev = anchor
-    for stop in course["stops"]:
-        if stop["category_keyword"] == "__must_include__" and must_include_place:
+    for stop in course.get("stops") or []:
+        # Planner(Solar)가 가끔 프롬프트 형식을 안 지키고 category_keyword를 통째로 빼먹은
+        # stop을 줄 때가 있음 — 그런 경우 이 정거장만 건너뛰고(코스 전체는 계속 진행) 죽지 않게 함
+        category_keyword = stop.get("category_keyword")
+        if not category_keyword:
+            continue
+
+        if category_keyword == "__must_include__" and must_include_place:
             places.append(must_include_place)
             prev = must_include_place
             continue
 
-        candidates = await _search_kakao_with_fallback(stop["category_keyword"], prev["lng"], prev["lat"])
+        candidates = await _search_kakao_with_fallback(category_keyword, prev["lng"], prev["lat"])
         # 데모 특성상 리뷰/영업시간 데이터가 준비된 장소만 노출(무작위 실제 장소가 나오면
         # 리뷰 없이 기본 문구만 뜨는 걸 방지). 카카오 검색 자체는 계속 실시간으로 하되,
         # 결과를 우리 데이터셋에 있는 이름으로만 걸러냅니다.
@@ -232,7 +238,7 @@ async def _build_one_course(
             generic_keyword = {"식당": "맛집", "카페": "카페", "액티비티": "전시"}.get(
                 stop.get("type")
             )
-            if generic_keyword and generic_keyword != stop["category_keyword"]:
+            if generic_keyword and generic_keyword != category_keyword:
                 retry = await _search_kakao_with_fallback(generic_keyword, prev["lng"], prev["lat"])
                 candidates = [
                     c for c in retry
@@ -255,12 +261,12 @@ async def _build_one_course(
         total_duration += route["duration_min"]
 
     return {
-        "course_id": course["course_id"],
-        "label": course["label"],
+        "course_id": course.get("course_id", "?"),
+        "label": course.get("label", "추천 코스"),
         "places": places,
         "total_distance_m": round(total_distance, 1),
         "total_duration_min": round(total_duration, 1),
-        "reasoning": course["reasoning"],  # 아래에서 실제 데이터 기반으로 덮어씀
+        "reasoning": course.get("reasoning", ""),  # 아래에서 실제 데이터 기반으로 덮어씀
     }
 
 
