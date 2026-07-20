@@ -15,13 +15,13 @@ const SUGGESTION_CHIPS = [
   },
   {
     caseId: 'case2',
-    label: '비오는날+채식',
-    prompt: '비 오는 날 채식 메뉴 있고 동선 안 꼬이는 강남 데이트 코스, 예산 10만원',
+    label: '비오는날+실내위주',
+    prompt: '비 오는 날 실내 위주로 다니고 싶은 성수동 데이트 코스, 예산 10만원',
   },
   {
     caseId: 'case3',
     label: '웨이팅회피+가성비',
-    prompt: '제주 여행 중 웨이팅 없고 가성비 좋은 3끼 맛집 코스, 인원 4명',
+    prompt: '웨이팅 없고 가성비 좋은 성수동 맛집 코스, 인원 4명',
   },
 ]
 
@@ -70,7 +70,7 @@ export default function ChatScreen() {
     setMessages((prev) => [
       ...prev,
       { id: nextId.current++, role: 'user', text: trimmed },
-      { id: nextId.current++, role: 'ai', caseId },
+      { id: nextId.current++, role: 'ai', caseId, query: trimmed },
     ])
     setInput('')
   }
@@ -172,6 +172,7 @@ export default function ChatScreen() {
                   <div className="w-[90%] rounded-2xl border border-gray-200 bg-white px-4 py-3">
                     <ChatAiMessage
                       caseId={msg.caseId}
+                      query={msg.query}
                       initialCourse={msg.course}
                       onGrow={scrollToBottom}
                       onComplete={(course) => handleAiComplete(msg.id, course)}

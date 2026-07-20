@@ -37,13 +37,39 @@ export default function CourseCard({
       {/* 예상 소요 시간 */}
       <p className="mt-3 text-xs font-medium text-gray-400">⏱ {duration}</p>
 
-      {/* 방문 장소 목록 (place는 이름/좌표/영업시간 등을 담은 객체) */}
+      {/* 방문 장소 목록 (place는 이름/좌표/영업시간/리뷰 근거 등을 담은 객체).
+          호버/클릭으로 활성화된 카드만 리뷰 근거까지 펼쳐서 보여주고,
+          비활성 카드는 이름만 간단히 보여줘서 목록이 너무 길어지지 않게 함. */}
       <ul className="mt-3 space-y-1">
-        {places.map((place) => (
-          <li key={place.name} className="text-sm text-gray-700">
-            📍 {place.name}
-          </li>
-        ))}
+        {places.map((place) =>
+          isActive ? (
+            <li key={place.name} className="rounded-lg bg-gray-50 p-2 text-sm text-gray-700">
+              <div className="flex items-center gap-1.5">
+                <span className="font-medium">📍 {place.name}</span>
+              </div>
+              {place.hours && <p className="mt-0.5 text-xs text-gray-400">🕐 {place.hours}</p>}
+              {place.reviewSnippet && (
+                <p className="mt-1 text-xs italic text-gray-500">"{place.reviewSnippet}"</p>
+              )}
+              {place.matchedConstraints?.length > 0 && (
+                <div className="mt-1.5 flex flex-wrap gap-1">
+                  {place.matchedConstraints.map((keyword) => (
+                    <span
+                      key={keyword}
+                      className="rounded-full bg-[#FEE500]/40 px-2 py-0.5 text-[10px] font-medium text-gray-700"
+                    >
+                      {keyword}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </li>
+          ) : (
+            <li key={place.name} className="text-sm text-gray-700">
+              📍 {place.name}
+            </li>
+          )
+        )}
       </ul>
     </article>
   )

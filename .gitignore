@@ -3,3 +3,10 @@ dist
 .DS_Store
 *.local
 .env
+.env.production
+
+# 백엔드 (Python)
+backend/venv
+backend/__pycache__
+backend/**/__pycache__
+*.pyc
