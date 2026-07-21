@@ -5,6 +5,7 @@ STEP 1~2. 입력 분석 레이어.
 - parse_captured_image: SNS 캡처 이미지 → 장소 카드(JSON)
   (기획안 STEP2 'Upstage Document AI', Document Parse 사용)
 """
+import re
 import tempfile
 
 from openai import OpenAI
@@ -15,6 +16,18 @@ from app.services import kakao, reviews
 from app.services.json_utils import extract_json
 
 client = OpenAI(api_key=UPSTAGE_API_KEY, base_url=UPSTAGE_BASE_URL)
+
+
+def _normalize_name(name: str) -> str:
+    """
+    SNS 게시물의 상호명 표기는 실제 카카오/우리 데이터 표기와 자주 다릅니다
+    (예: "5to7 (오투칠)" vs 데이터셋의 "5TO7" — 괄호 별칭, 대소문자, 공백 차이).
+    괄호 안 내용을 지우고 소문자로 바꿔서, 이런 표기 차이를 흡수한 뒤 비교합니다.
+    """
+    if not name:
+        return ""
+    cleaned = re.sub(r"[\(（].*?[\)）]", "", name)
+    return re.sub(r"\s+", "", cleaned).strip().lower()
 
 CONSTRAINT_SYSTEM_PROMPT = """당신은 사용자의 자연어 요청에서 코스 추천에 필요한
 제약조건을 뽑아내는 파서입니다. 반드시 아래 JSON 스키마로만 답하세요. (마지막 항목 뒤에 쉼표를 붙이지 마세요)
@@ -93,15 +106,22 @@ async def parse_captured_image(image_bytes: bytes, filename: str) -> dict:
         place["lng"] = None
 
     known_names = reviews.known_place_names()
-    resolved_name = place.get("name") if place.get("name") in known_names else None
+    known_by_normalized = {_normalize_name(n): n for n in known_names}
+
+    raw_name = place.get("name")
+    resolved_name = known_by_normalized.get(_normalize_name(raw_name)) if raw_name else None
 
     # OCR/LLM이 뽑아낸 상호명 표기가 카카오 공식 표기와 정확히 일치하지 않을 수 있어서,
     # 좌표를 구했다면 그 주변에서 같은 이름으로 한 번 더 검색해 가게 데이터와 대조해봄.
-    if not resolved_name and place.get("name") and place.get("lat") is not None:
-        candidates = await kakao.search_places(place["name"], place["lng"], place["lat"], radius=300)
+    # 검색어는 괄호 별칭을 뺀 정리된 이름을 써야 카카오 검색이 결과를 잘 찾음
+    # (예: "5to7 (오투칠)"로 검색하면 0건, "5to7"로 검색해야 찾아짐).
+    if not resolved_name and raw_name and place.get("lat") is not None:
+        search_keyword = re.sub(r"[\(（].*?[\)）]", "", raw_name).strip() or raw_name
+        candidates = await kakao.search_places(search_keyword, place["lng"], place["lat"], radius=300)
         for c in candidates:
-            if c["name"] in known_names:
-                resolved_name = c["name"]
+            match = known_by_normalized.get(_normalize_name(c["name"]))
+            if match:
+                resolved_name = match
                 break
 
     place["is_known_store"] = resolved_name is not None
