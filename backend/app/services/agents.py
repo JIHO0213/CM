@@ -29,6 +29,13 @@ PLANNER_PROMPT = """당신은 데이트/모임 코스를 기획하는 Planner Ag
 만약 constraints.must_include_place가 있다면, 그 장소는 반드시 모든 코스에 정거장으로 포함시키고
 category_keyword 대신 "__must_include__"라고만 적으세요.
 
+만약 constraints.required_categories(배열)가 있다면, 그 배열 안의 항목 각각은 사용자가 명시적으로
+요청한 장소 종류이므로 "전부" 모든 코스에 최소 하나의 정거장으로 반드시 포함시키세요. 예를 들어
+required_categories가 ["한식", "팝업스토어"]라면, 코스마다 한식 관련 정거장 최소 1개와 팝업스토어
+관련 정거장 최소 1개가 함께 있어야 하며, 둘 중 하나라도 빠뜨리면 안 됩니다. 이때 category_keyword는
+그 요구사항을 그대로 베끼지 말고 카카오 검색에 맞는 구체적인 키워드로 바꾸세요
+(예: required_categories의 "한식" -> category_keyword "한정식" 또는 "한식당").
+
 정거장마다 "type"을 아래 3가지 중 하나로 반드시 지정하세요:
 - "식당": 밥/식사 위주 (파스타, 곱창, 브런치 등)
 - "카페": 커피·디저트·음료 위주

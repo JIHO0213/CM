@@ -121,14 +121,17 @@ async def _resolve_anchor_and_constraints(parsed: dict):
         return None
 
     requirement_keywords = parsed.get("requirement_keywords") or []
+    category_keywords = parsed.get("category_keywords") or []
     constraints = {
         "budget_krw": parsed.get("budget_krw"),
         "headcount": parsed.get("headcount"),
         "transport": parsed.get("transport"),
         "weather_sensitive": parsed.get("weather_sensitive", False),
-        "mood_keywords": requirement_keywords + (
-            [parsed["category_keyword"]] if parsed.get("category_keyword") else []
-        ),
+        "mood_keywords": requirement_keywords + category_keywords,
+        # 사용자가 명시적으로 언급한 장소 종류들 — Planner가 이 각각을 최소 하나의
+        # 정거장으로 반드시 포함시키도록 강제하는 하드 제약(단순 힌트인 mood_keywords와 다름).
+        # 예: "한식 먹고 팝업스토어 가고 싶어" -> ['한식', '팝업스토어'] 둘 다 코스에 포함되어야 함.
+        "required_categories": category_keywords,
     }
     anchor = {"name": anchor_text, "lat": anchor_coords["lat"], "lng": anchor_coords["lng"]}
     return anchor_text, anchor, constraints, requirement_keywords
@@ -173,7 +176,7 @@ async def _generate_courses(
     must_include_name = must_include_place["name"] if must_include_place else None
 
     return {
-        "title": f"{anchor_text} {parsed.get('category_keyword') or ''} 코스".strip(),
+        "title": f"{anchor_text} {' '.join(parsed.get('category_keywords') or [])} 코스".strip(),
         "courses": [
             _to_frontend_course(c, i, requirement_keywords, must_include_name)
             for i, c in enumerate(courses)
@@ -252,7 +255,7 @@ async def _generate_courses_stream(parsed: dict, must_include_place: dict | None
     must_include_name = must_include_place["name"] if must_include_place else None
 
     yield sse("result", {
-        "title": f"{anchor_text} {parsed.get('category_keyword') or ''} 코스".strip(),
+        "title": f"{anchor_text} {' '.join(parsed.get('category_keywords') or [])} 코스".strip(),
         "courses": [
             _to_frontend_course(c, i, requirement_keywords, must_include_name)
             for i, c in enumerate(courses)
