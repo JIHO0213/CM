@@ -16,6 +16,7 @@ from app.config import KAKAO_REST_API_KEY
 
 LOCAL_SEARCH_URL = "https://dapi.kakao.com/v2/local/search/keyword.json"
 ADDRESS_SEARCH_URL = "https://dapi.kakao.com/v2/local/search/address.json"
+CATEGORY_SEARCH_URL = "https://dapi.kakao.com/v2/local/search/category.json"
 DIRECTIONS_URL = "https://apis-navi.kakaomobility.com/v1/directions"
 
 HEADERS = {"Authorization": f"KakaoAK {KAKAO_REST_API_KEY}"}
@@ -35,6 +36,42 @@ async def search_places(query: str, lng: float, lat: float, radius: int = 1500) 
     }
     async with httpx.AsyncClient(timeout=5.0) as client:
         res = await client.get(LOCAL_SEARCH_URL, headers=HEADERS, params=params)
+        res.raise_for_status()
+        data = res.json()
+
+    return [
+        {
+            "name": doc["place_name"],
+            "address": doc["road_address_name"] or doc["address_name"],
+            "lat": float(doc["y"]),
+            "lng": float(doc["x"]),
+            "category": doc["category_name"],
+            "phone": doc.get("phone", ""),
+            "place_url": doc.get("place_url", ""),
+        }
+        for doc in data.get("documents", [])
+    ]
+
+
+async def search_by_category_nearby(
+    lng: float, lat: float, radius: int, category_group_code: str
+) -> list[dict]:
+    """
+    상호명(keyword) 없이, 좌표 주변의 특정 카테고리 장소를 전부 조회.
+    SNS 캡처 이미지의 상호명이 손글씨 로고체 같은 스타일이라 OCR이 잘못 읽어냈을 때,
+    이름 대신 주소(→좌표, 이쪽은 보통 일반 텍스트라 OCR이 잘 됨) 근처에서 큐레이션
+    데이터에 있는 장소를 찾기 위한 최후 폴백으로 씁니다.
+    category_group_code 예: FD6=음식점, CE7=카페, CT1=문화시설, AT4=관광명소.
+    """
+    params = {
+        "category_group_code": category_group_code,
+        "x": lng,
+        "y": lat,
+        "radius": radius,
+        "sort": "distance",
+    }
+    async with httpx.AsyncClient(timeout=5.0) as client:
+        res = await client.get(CATEGORY_SEARCH_URL, headers=HEADERS, params=params)
         res.raise_for_status()
         data = res.json()
 

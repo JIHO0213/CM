@@ -124,6 +124,23 @@ async def parse_captured_image(image_bytes: bytes, filename: str) -> dict:
                 resolved_name = match
                 break
 
+    # 마지막 폴백: 상호명 텍스트 자체가 손글씨 로고체 같은 스타일이라 OCR이 완전히
+    # 다르게 읽어냈을 수도 있음 — 이 경우 이름으로는 아무리 검색해도 못 찾으므로,
+    # 이름을 아예 무시하고 주소(→좌표, 보통 일반 텍스트라 OCR이 잘 됨) 근처의
+    # 식당·카페·문화시설·관광명소를 카테고리로 훑어서 큐레이션 데이터와 대조합니다.
+    if not resolved_name and place.get("lat") is not None:
+        for category_code in ("FD6", "CE7", "CT1", "AT4"):
+            nearby = await kakao.search_by_category_nearby(
+                place["lng"], place["lat"], 80, category_code
+            )
+            for c in nearby:
+                match = known_by_normalized.get(_normalize_name(c["name"]))
+                if match:
+                    resolved_name = match
+                    break
+            if resolved_name:
+                break
+
     place["is_known_store"] = resolved_name is not None
     if resolved_name:
         place["name"] = resolved_name
