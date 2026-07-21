@@ -26,7 +26,7 @@ const mockDataMap = {
  * @param {string} params.caseId - 'case1' | 'case2' | 'case3' (mock 모드에서만 사용)
  * @returns {Promise<object>} { title, courses } 또는 { title: null, courses: [], message } (조건에 안 맞을 때)
  */
-export async function getCourseRecommendation({ query, caseId }) {
+export async function getCourseRecommendation({ query, caseId, mustIncludePlace }) {
   if (USE_MOCK) {
     const data = mockDataMap[caseId]
     if (!data) {
@@ -42,7 +42,10 @@ export async function getCourseRecommendation({ query, caseId }) {
   const response = await fetch(`${API_BASE_URL}/api/courses`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query }),
+    body: JSON.stringify({
+      query,
+      ...(mustIncludePlace ? { must_include_place: mustIncludePlace } : {}),
+    }),
   })
 
   const data = await response.json().catch(() => null)
@@ -63,16 +66,21 @@ export async function getCourseRecommendation({ query, caseId }) {
  * (네이티브 EventSource는 POST 바디를 못 보내서, fetch + ReadableStream으로 직접 파싱함)
  * @param {object} params
  * @param {string} params.query
+ * @param {object} [params.mustIncludePlace] - /api/parse-image가 반환한 { name, lat, lng, address }
+ *   (SNS 캡처 이미지에서 인식되고, 가게 데이터에도 있는 걸로 검증된 장소일 때만 넘김)
  * @param {(step: number) => void} [params.onStep] - 새 단계가 시작될 때마다 호출 (1~5)
  * @param {(data: object) => void} params.onResult - 최종 결과 도착 시 호출
  *   ({ title, courses } | { title: null, courses: [], message } | { error })
  * @param {AbortSignal} [params.signal]
  */
-export async function streamCourseRecommendation({ query, onStep, onResult, signal }) {
+export async function streamCourseRecommendation({ query, mustIncludePlace, onStep, onResult, signal }) {
   const response = await fetch(`${API_BASE_URL}/api/courses/stream`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query }),
+    body: JSON.stringify({
+      query,
+      ...(mustIncludePlace ? { must_include_place: mustIncludePlace } : {}),
+    }),
     signal,
   })
 
@@ -111,6 +119,31 @@ export async function streamCourseRecommendation({ query, onStep, onResult, sign
       }
     }
   }
+}
+
+/**
+ * SNS 캡처 이미지를 업로드해서 상호명/주소/좌표를 인식.
+ * 첫 요청 시에만 쓰는 'SNS 캡처로 가게 추가' 버튼이 이 함수를 호출함.
+ * @param {File} file - 업로드한 이미지 파일
+ * @returns {Promise<object>} { name, address, notes, lat, lng, is_known_store }
+ *   is_known_store가 false면 우리 가게 데이터에 없는 곳이라 코스에 반영하면 안 됨.
+ */
+export async function parseImage(file) {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const response = await fetch(`${API_BASE_URL}/api/parse-image`, {
+    method: 'POST',
+    body: formData,
+  })
+
+  const data = await response.json().catch(() => null)
+
+  if (!response.ok) {
+    throw new Error(data?.error || '이미지 분석에 실패했습니다')
+  }
+
+  return data
 }
 
 /**

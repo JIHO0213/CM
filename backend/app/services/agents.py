@@ -171,29 +171,45 @@ async def _choose_open_place(
     return fallback
 
 
-async def _search_kakao_with_fallback(category_keyword: str, lng: float, lat: float) -> list[dict]:
+async def _search_kakao_with_fallback(
+    category_keyword: str,
+    lng: float,
+    lat: float,
+    known_names: set[str],
+    exclude_place_names: list[str],
+) -> list[dict]:
     """
     카카오 로컬 키워드 검색은 짧은 명사(구)일 때만 결과가 나오고, Planner가 (프롬프트
     지시를 못 지켜서) "반려동물 동반 가능한 성수동 감성 카페"처럼 지역·조건을 욱여넣은
     긴 문장을 keyword로 주면 0건이 나옵니다. 그 경우 뒤쪽 1~2단어(보통 실제 카테고리
     명사가 옴, 예: "...감성 카페" -> "카페")만 남겨서 한 번 더 시도합니다.
+
+    주의: 예전엔 "결과가 하나라도 있으면" 바로 반환했는데, 그러면 중간 길이 키워드(예:
+    "현대 미술 갤러리" -> "미술 갤러리")가 큐레이션 안 된 엉뚱한 장소를 몇 건 찾아버리는
+    순간 거기서 멈춰버려서, 정작 맞는 곳을 찾을 수 있었던 더 짧은 키워드("갤러리")까지는
+    가보지도 못하고 실패하는 경우가 있었습니다(홍대처럼 큐레이션된 곳이 적은 지역에서
+    특히 두드러짐). 그래서 지금은 "우리 가게 데이터에 있는 곳이 나올 때까지" 계속 좁혀서
+    시도하고, 끝까지 하나도 못 찾으면 그나마 마지막으로 받은 결과를 반환합니다.
     """
-    candidates = await kakao.search_places(category_keyword, lng, lat)
-    if candidates:
-        return candidates
+    def has_known_match(cands: list[dict]) -> bool:
+        return any(c["name"] in known_names and c["name"] not in exclude_place_names for c in cands)
 
+    keywords_to_try = [category_keyword]
     tokens = category_keyword.split()
-    if len(tokens) <= 1:
-        return []
+    if len(tokens) > 1:
+        for n in (2, 1):
+            shortened = " ".join(tokens[-n:])
+            if shortened not in keywords_to_try:
+                keywords_to_try.append(shortened)
 
-    for n in (2, 1):
-        shortened = " ".join(tokens[-n:])
-        if shortened == category_keyword:
-            continue
-        candidates = await kakao.search_places(shortened, lng, lat)
+    last_candidates: list[dict] = []
+    for kw in keywords_to_try:
+        candidates = await kakao.search_places(kw, lng, lat)
         if candidates:
+            last_candidates = candidates
+        if has_known_match(candidates):
             return candidates
-    return []
+    return last_candidates
 
 
 async def _build_one_course(
@@ -221,11 +237,15 @@ async def _build_one_course(
             prev = must_include_place
             continue
 
-        candidates = await _search_kakao_with_fallback(category_keyword, prev["lng"], prev["lat"])
         # 데모 특성상 리뷰/영업시간 데이터가 준비된 장소만 노출(무작위 실제 장소가 나오면
         # 리뷰 없이 기본 문구만 뜨는 걸 방지). 카카오 검색 자체는 계속 실시간으로 하되,
-        # 결과를 우리 데이터셋에 있는 이름으로만 걸러냅니다.
+        # 결과를 우리 데이터셋에 있는 이름으로만 걸러냅니다. (known_names를 검색 이전에
+        # 미리 구해서 _search_kakao_with_fallback에 넘겨줘야, 그 안에서 "우리 데이터에
+        # 있는 곳이 나올 때까지" 키워드를 계속 좁혀볼 수 있음)
         known_names = reviews.known_place_names()
+        candidates = await _search_kakao_with_fallback(
+            category_keyword, prev["lng"], prev["lat"], known_names, exclude_place_names
+        )
         candidates = [
             c for c in candidates
             if c["name"] in known_names and c["name"] not in exclude_place_names
@@ -239,7 +259,9 @@ async def _build_one_course(
                 stop.get("type")
             )
             if generic_keyword and generic_keyword != category_keyword:
-                retry = await _search_kakao_with_fallback(generic_keyword, prev["lng"], prev["lat"])
+                retry = await _search_kakao_with_fallback(
+                    generic_keyword, prev["lng"], prev["lat"], known_names, exclude_place_names
+                )
                 candidates = [
                     c for c in retry
                     if c["name"] in known_names and c["name"] not in exclude_place_names

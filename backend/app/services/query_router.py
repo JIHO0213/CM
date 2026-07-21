@@ -35,3 +35,22 @@ def parse_free_query(query: str) -> dict:
     )
     raw = completion.choices[0].message.content
     return extract_json(raw)
+
+
+# 코스를 만들려면 반드시 있어야 하는 슬롯. 여기 없으면(=null) 예전처럼 "서울"이나
+# 임의 카테고리로 추론해서 채우지 않고, 사용자에게 되물어서 직접 채우게 합니다.
+REQUIRED_FIELD_QUESTIONS = {
+    "anchor_text": "어느 지역에서 찾아드릴까요? (예: 성수동)",
+    "category_keyword": "어떤 종류의 장소를 찾으세요? (예: 브런치, 카페, 갤러리, 데이트 코스)",
+}
+
+
+def missing_required_fields(parsed: dict) -> list[str]:
+    """parse_free_query 결과에서 필수 슬롯 중 비어있는(null) 것들의 키 목록."""
+    return [key for key in REQUIRED_FIELD_QUESTIONS if not parsed.get(key)]
+
+
+def build_clarification_message(missing: list[str]) -> str:
+    """부족한 슬롯에 대해 되물을 안내 문구 생성."""
+    questions = "\n".join(f"- {REQUIRED_FIELD_QUESTIONS[key]}" for key in missing)
+    return "코스를 추천해드리려면 몇 가지가 더 필요해요.\n" + questions

@@ -107,8 +107,15 @@ async def _resolve_anchor_and_constraints(parsed: dict):
     """
     parsed(query_router 출력)에서 지역 좌표를 실제로 찾고, Planner에 넘길 constraints/anchor를
     구성. 지역을 못 찾으면 None (호출부에서 '결과 없음' 응답으로 처리).
+
+    주의: anchor_text가 비어있어도 "서울"로 임의 추론해서 채우지 않습니다 — 호출부
+    (handle_free_query/handle_free_query_stream)에서 query_router.missing_required_fields로
+    미리 걸러서 사용자에게 되묻기 때문에, 이 함수에 도달할 때는 이미 채워져 있는 게 정상입니다.
+    (handle_replan처럼 그 체크를 안 거치는 경로에서 비어 있으면 그냥 '못 찾음'으로 처리)
     """
-    anchor_text = parsed.get("anchor_text") or "서울"
+    anchor_text = parsed.get("anchor_text")
+    if not anchor_text:
+        return None
     anchor_coords = await kakao.geocode_district(anchor_text)
     if not anchor_coords:
         return None
@@ -137,12 +144,13 @@ async def _generate_courses(
 
     resolved = await _resolve_anchor_and_constraints(parsed)
     if resolved is None:
-        anchor_text = parsed.get("anchor_text") or "서울"
-        return {
-            "title": None,
-            "courses": [],
-            "message": f"'{anchor_text}' 지역을 찾지 못했어요. 지역명을 다시 확인해주세요.",
-        }
+        anchor_text = parsed.get("anchor_text")
+        message = (
+            f"'{anchor_text}' 지역을 찾지 못했어요. 지역명을 다시 확인해주세요."
+            if anchor_text
+            else "지역 정보를 찾지 못했어요. 어느 지역에서 코스를 찾을지 알려주세요."
+        )
+        return {"title": None, "courses": [], "message": message}
     anchor_text, anchor, constraints, requirement_keywords = resolved
 
     courses = await agents.plan_courses(
@@ -191,12 +199,13 @@ async def _generate_courses_stream(parsed: dict, must_include_place: dict | None
     yield sse("step", {"step": 1, "label": "사용자 입력을 분석하고 있어요..."})
     resolved = await _resolve_anchor_and_constraints(parsed)
     if resolved is None:
-        anchor_text = parsed.get("anchor_text") or "서울"
-        yield sse("result", {
-            "title": None,
-            "courses": [],
-            "message": f"'{anchor_text}' 지역을 찾지 못했어요. 지역명을 다시 확인해주세요.",
-        })
+        anchor_text = parsed.get("anchor_text")
+        message = (
+            f"'{anchor_text}' 지역을 찾지 못했어요. 지역명을 다시 확인해주세요."
+            if anchor_text
+            else "지역 정보를 찾지 못했어요. 어느 지역에서 코스를 찾을지 알려주세요."
+        )
+        yield sse("result", {"title": None, "courses": [], "message": message})
         return
     anchor_text, anchor, constraints, requirement_keywords = resolved
 
@@ -251,13 +260,40 @@ async def _generate_courses_stream(parsed: dict, must_include_place: dict | None
     })
 
 
+def _clarification_response(missing: list[str]) -> dict:
+    return {
+        "title": None,
+        "courses": [],
+        "needsClarification": True,
+        "missingFields": missing,
+        "message": query_router.build_clarification_message(missing),
+    }
+
+
 async def handle_free_query(query: str, must_include_place: dict | None = None) -> dict:
     parsed = query_router.parse_free_query(query)
+
+    # 지역/카테고리 같은 필수 정보가 비어 있으면 "서울"이나 임의 카테고리로 추론해서
+    # 채우지 않고, 코스 생성 자체를 하지 않은 채 사용자에게 되물어서 직접 채우게 합니다.
+    missing = query_router.missing_required_fields(parsed)
+    if missing:
+        return _clarification_response(missing)
+
     return await _generate_courses(parsed, must_include_place=must_include_place)
 
 
 async def handle_free_query_stream(query: str, must_include_place: dict | None = None):
     parsed = query_router.parse_free_query(query)
+
+    missing = query_router.missing_required_fields(parsed)
+    if missing:
+        yield {
+            "event": "step",
+            "data": json.dumps({"step": 1, "label": "사용자 입력을 분석하고 있어요..."}, ensure_ascii=False),
+        }
+        yield {"event": "result", "data": json.dumps(_clarification_response(missing), ensure_ascii=False)}
+        return
+
     async for chunk in _generate_courses_stream(parsed, must_include_place=must_include_place):
         yield chunk
 

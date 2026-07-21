@@ -1,10 +1,13 @@
 // 결과 화면에서 코스 하나를 보여주는 카드 컴포넌트
 // color: 지도 경로선과 맞춘 이 코스의 색상 (마우스 올리거나 클릭하면 카드 테두리도 이 색으로 강조됨)
+// grounded/groundednessNote: 백엔드 환각 검증(STEP5) 결과 - 코스 설명이 실제 데이터와 맞는지
 export default function CourseCard({
   title,
   description,
   duration,
   places,
+  grounded,
+  groundednessNote,
   index,
   color,
   isActive,
@@ -37,6 +40,13 @@ export default function CourseCard({
       {/* 예상 소요 시간 */}
       <p className="mt-3 text-xs font-medium text-gray-400">⏱ {duration}</p>
 
+      {/* 환각 검증(STEP5) 결과: 실제 영업시간/이동거리 데이터와 설명이 맞는지 */}
+      {typeof grounded === 'boolean' && (
+        <p className={`mt-1 text-xs font-medium ${grounded ? 'text-emerald-600' : 'text-amber-600'}`}>
+          {grounded ? '✅' : '⚠️'} {groundednessNote}
+        </p>
+      )}
+
       {/* 방문 장소 목록 (place는 이름/좌표/영업시간/리뷰 근거 등을 담은 객체).
           호버/클릭으로 활성화된 카드만 리뷰 근거까지 펼쳐서 보여주고,
           비활성 카드는 이름만 간단히 보여줘서 목록이 너무 길어지지 않게 함. */}
@@ -44,8 +54,13 @@ export default function CourseCard({
         {places.map((place) =>
           isActive ? (
             <li key={place.name} className="rounded-lg bg-gray-50 p-2 text-sm text-gray-700">
-              <div className="flex items-center gap-1.5">
+              <div className="flex flex-wrap items-center gap-1.5">
                 <span className="font-medium">📍 {place.name}</span>
+                {place.fromImage && (
+                  <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-600">
+                    📷 이미지에서 반영됨
+                  </span>
+                )}
               </div>
               {place.hours && <p className="mt-0.5 text-xs text-gray-400">🕐 {place.hours}</p>}
               {place.reviewSnippet && (
@@ -65,8 +80,13 @@ export default function CourseCard({
               )}
             </li>
           ) : (
-            <li key={place.name} className="text-sm text-gray-700">
+            <li key={place.name} className="flex flex-wrap items-center gap-1.5 text-sm text-gray-700">
               📍 {place.name}
+              {place.fromImage && (
+                <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-600">
+                  📷 이미지에서 반영됨
+                </span>
+              )}
             </li>
           )
         )}
