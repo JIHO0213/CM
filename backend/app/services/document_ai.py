@@ -11,7 +11,7 @@ from openai import OpenAI
 from langchain_upstage import UpstageDocumentParseLoader
 
 from app.config import UPSTAGE_API_KEY, UPSTAGE_BASE_URL, SOLAR_MODEL
-from app.services import kakao
+from app.services import kakao, reviews
 from app.services.json_utils import extract_json
 
 client = OpenAI(api_key=UPSTAGE_API_KEY, base_url=UPSTAGE_BASE_URL)
@@ -48,8 +48,11 @@ async def parse_captured_image(image_bytes: bytes, filename: str) -> dict:
     """
     업로드된 SNS 캡처 이미지를 Document Parse로 레이아웃 분석 → 텍스트 추출 →
     Solar Chat으로 장소명/주소 등 구조화 JSON 변환 → 주소를 좌표로 변환까지 한번에 처리.
-    반환된 결과(name/lat/lng 포함)를 그대로 PlanRequest.must_include_place에 넣으면
-    코스 생성 시 실제 정거장으로 반영됩니다.
+
+    추가로, 뽑아낸 상호명이 우리 가게 데이터(리뷰/영업시간이 준비된 큐레이션 목록)에
+    실제로 있는 곳인지 확인해서 is_known_store로 표시합니다. 코스 생성 파이프라인
+    (agents.plan_courses)도 같은 목록으로 한 번 더 걸러내므로, 가게 데이터에 없는
+    이미지는 최종적으로 코스에 반영되지 않습니다.
     """
     with tempfile.NamedTemporaryFile(suffix="_" + filename, delete=False) as tmp:
         tmp.write(image_bytes)
@@ -85,4 +88,23 @@ async def parse_captured_image(image_bytes: bytes, filename: str) -> dict:
         else:
             place["lat"] = None
             place["lng"] = None
+    else:
+        place["lat"] = None
+        place["lng"] = None
+
+    known_names = reviews.known_place_names()
+    resolved_name = place.get("name") if place.get("name") in known_names else None
+
+    # OCR/LLM이 뽑아낸 상호명 표기가 카카오 공식 표기와 정확히 일치하지 않을 수 있어서,
+    # 좌표를 구했다면 그 주변에서 같은 이름으로 한 번 더 검색해 가게 데이터와 대조해봄.
+    if not resolved_name and place.get("name") and place.get("lat") is not None:
+        candidates = await kakao.search_places(place["name"], place["lng"], place["lat"], radius=300)
+        for c in candidates:
+            if c["name"] in known_names:
+                resolved_name = c["name"]
+                break
+
+    place["is_known_store"] = resolved_name is not None
+    if resolved_name:
+        place["name"] = resolved_name
     return place

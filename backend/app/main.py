@@ -10,7 +10,7 @@ from pydantic import BaseModel
 import json
 import traceback
 
-from app.schemas import PlanRequest, ReplanRequest
+from app.schemas import PlanRequest, ReplanRequest, MustIncludePlace
 from app.pipeline import run_pipeline_stream, replan_for_disruption
 from app.services import document_ai, course_contract
 
@@ -36,6 +36,9 @@ app.add_middleware(
 
 class QueryRequest(BaseModel):
     query: str
+    # 첫 요청 시 SNS 캡처 이미지를 업로드했다면 /api/parse-image 결과를 그대로 담아서 보냄.
+    # 우리 가게 데이터에 없는 장소면 agents.plan_courses 단계에서 무시됩니다.
+    must_include_place: MustIncludePlace | None = None
 
 
 class CourseReplanRequest(BaseModel):
@@ -57,7 +60,8 @@ async def get_courses(req: QueryRequest):
     자동으로 뽑아내고, 리뷰·영업여부·거리를 반영해 코스 3개를 구성합니다.)
     """
     try:
-        return await course_contract.handle_free_query(req.query)
+        must_include = req.must_include_place.model_dump() if req.must_include_place else None
+        return await course_contract.handle_free_query(req.query, must_include_place=must_include)
     except Exception:
         traceback.print_exc()  # 터미널에 실제 원인(Traceback)을 그대로 출력
         return JSONResponse(
@@ -79,7 +83,8 @@ async def get_courses_stream(req: QueryRequest):
     """
     async def event_stream():
         try:
-            async for chunk in course_contract.handle_free_query_stream(req.query):
+            must_include = req.must_include_place.model_dump() if req.must_include_place else None
+            async for chunk in course_contract.handle_free_query_stream(req.query, must_include_place=must_include):
                 yield chunk
         except Exception:
             traceback.print_exc()

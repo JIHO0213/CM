@@ -290,6 +290,11 @@ async def plan_courses(
     """
     exclude_place_names = exclude_place_names or []
 
+    # 이미지에서 인식된 장소라도, 우리 가게 데이터(리뷰/영업시간이 준비된 82곳)에 없으면
+    # 검증되지 않은 장소이므로 코스에 강제로 넣지 않습니다. (SNS 캡처 반영 기능의 안전장치)
+    if must_include_place and must_include_place.get("name") not in reviews.known_place_names():
+        must_include_place = None
+
     async def emit(step: int, label: str):
         if on_progress:
             await on_progress(step, label)
