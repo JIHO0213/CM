@@ -219,6 +219,27 @@ async def _search_kakao_with_fallback(
     return last_candidates
 
 
+async def _fallback_known_place_of_type(
+    place_type: str | None, lng: float, lat: float, exclude_place_names: set[str]
+) -> dict | None:
+    """
+    카테고리 키워드 검색(일반 검색 + 대분류 재시도)까지 다 실패했을 때 쓰는 최후 수단.
+    정거장을 통째로 비워두는 대신, 같은 type(식당/카페/액티비티)의 큐레이션된 장소를
+    이름으로 하나씩 직접 검색해서 근처에서 찾아지는 첫 곳을 씁니다. (place_types.json은
+    기존 82곳을 리뷰 내용 기준으로 미리 분류해 둔 것 — 새 장소를 추가하는 게 아닙니다)
+    """
+    if not place_type:
+        return None
+    for name in reviews.known_place_names_of_type(place_type):
+        if name in exclude_place_names:
+            continue
+        results = await kakao.search_places(name, lng, lat, radius=5000)
+        for r in results:
+            if r["name"] == name:
+                return r
+    return None
+
+
 async def _build_one_course(
     course: dict,
     constraints: dict,
@@ -273,9 +294,19 @@ async def _build_one_course(
                     c for c in retry
                     if c["name"] in known_names and c["name"] not in exclude_place_names
                 ]
+        already_chosen_names = {p["name"] for p in places}
+        if not candidates:
+            # 그래도 못 찾았으면 정거장을 비우지 말고, 같은 type의 큐레이션 장소를
+            # 이름으로 직접 찾아 채웁니다 (예: "한식" 검색이 다 실패해도, 큐레이션된
+            # 식당 타입 장소 중 근처에 있는 곳을 대신 넣음).
+            fallback = await _fallback_known_place_of_type(
+                stop.get("type"), prev["lng"], prev["lat"],
+                exclude_place_names=already_chosen_names | set(exclude_place_names),
+            )
+            if fallback:
+                candidates = [fallback]
         if not candidates:
             continue
-        already_chosen_names = {p["name"] for p in places}
         chosen = await _choose_open_place(candidates, mood_keywords, already_chosen_names)
         if not chosen:
             # 이 코스에서 이미 선택된 장소뿐이라 새로 고를 후보가 없음 → 이 정거장은 건너뜀

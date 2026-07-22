@@ -24,10 +24,30 @@ from app.config import UPSTAGE_API_KEY, UPSTAGE_BASE_URL, SOLAR_MODEL
 client = OpenAI(api_key=UPSTAGE_API_KEY, base_url=UPSTAGE_BASE_URL)
 
 REVIEWS_JSON_PATH = Path(__file__).resolve().parent.parent / "data" / "reviews.json"
+PLACE_TYPES_JSON_PATH = Path(__file__).resolve().parent.parent / "data" / "place_types.json"
 
 DEFAULT_REVIEWS = [
     {"text": "무난하게 괜찮은 곳이에요.", "rating": 4},
 ]
+
+
+def _load_place_types() -> dict[str, str]:
+    if not PLACE_TYPES_JSON_PATH.exists():
+        return {}
+    with open(PLACE_TYPES_JSON_PATH, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def known_place_names_of_type(place_type: str) -> list[str]:
+    """
+    큐레이션된 82곳 중 주어진 type(식당/카페/액티비티)에 해당하는 이름 목록.
+    카테고리 키워드 검색이 실패했을 때, agents.py의 최후 폴백(같은 타입의 큐레이션
+    장소를 이름으로 직접 찾기)에 씁니다. place_types.json은 리뷰 내용을 보고
+    미리 분류해 둔 정적 데이터라, 새 장소를 추가하는 게 아니라 기존 82곳을
+    나눠놓은 것뿐입니다.
+    """
+    types = _load_place_types()
+    return [name for name, t in types.items() if t == place_type]
 
 
 def _load_mock_reviews() -> dict[str, list[dict]]:
